@@ -21,40 +21,20 @@ public class Node {
         return id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     public String getData() {
         return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
     }
 
     public int getNodePower() {
         return nodePower;
     }
 
-    public void setNodePower(int nodePower) {
-        this.nodePower = nodePower;
-    }
-
     public void addEdge(Edge edge) {
         edges.add(edge);
     }
 
-    public void clearEdges() {
-        edges.clear();
-    }
-
     public List<Edge> getEdges() {
         return edges;
-    }
-
-    public void setEdges(List<Edge> edges) {
-        this.edges = edges;
     }
 
     @Override

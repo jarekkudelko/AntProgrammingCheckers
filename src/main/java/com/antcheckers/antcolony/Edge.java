@@ -5,9 +5,6 @@ public class Edge {
     private Node endNode;
     private float pheromones;
 
-    public Edge() {
-    }
-
     public Edge(Node startNode, Node endNode, float pheromones) {
         this.startNode = startNode;
         this.endNode = endNode;
@@ -19,20 +16,20 @@ public class Edge {
         this(that.getStartNode(),that.getEndNode(),that.getPheromones());
     }
 
+    boolean isCopyOf(Edge original) {
+        return getStartNode() == original.getStartNode() && getEndNode() == original.getEndNode();
+    }
+
+    boolean pheromonesStrongerThan(float originalEdgePheromones) {
+        return originalEdgePheromones <= getPheromones();
+    }
+
     public Node getStartNode() {
         return startNode;
     }
 
-    public void setStartNode(Node startNode) {
-        this.startNode = startNode;
-    }
-
     public Node getEndNode() {
         return endNode;
-    }
-
-    public void setEndNode(Node endNode) {
-        this.endNode = endNode;
     }
 
     public float getPheromones() {

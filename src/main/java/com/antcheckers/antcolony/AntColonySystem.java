@@ -2,177 +2,186 @@ package com.antcheckers.antcolony;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AntColonySystem {
 
+    private static String[] operators = {"+", "-", "*", "/"};
+
     private int numberOfAnts = 3;
     private int numberOfCycles = 3;
-    private int numberOfIterationsInCycle = 12;
+    private int maxIterationsInCycle = 12;
+
     private int minNodeValue = 1;
     private int maxNodeValue = 2;
-    private float initialFeromonesValue = 0.01f;
-    private float ro = 0.1f;
-    private float q0 = 0.5f;
-    private boolean localUpdatePheromones = true;
 
-    private List<Node> nodes;
-    private List<Ant> ants;
-    private List<Edge> edges;
+    private float initialFeromones = 0.01f;
+    private boolean localPheromones = true;
+
+    private float vaporizeFactor = 0.1f;
+    private float exploitationFactor = 0.5f;
+
+    private List<Node> nodes = new ArrayList<>();
+    private List<Ant> ants = new ArrayList<>();
+    private List<Edge> edges = new ArrayList<>();
 
     public void run() {
-        nodes = createNodesList(minNodeValue, maxNodeValue);
-        ants = createAntsList(numberOfAnts);
-        edges = createEdgesList(nodes,initialFeromonesValue);
-
-        antsCycle(ants,nodes,edges,numberOfIterationsInCycle,numberOfCycles);
+        setColonyLists();
+        colonyLifecycle();
     }
 
-    private List createNodesList(int minValue, int maxValue) {
-        List<Node> nodesList = new ArrayList<>();
+    private void setColonyLists() {
+        fillNodes();
+        fillAnts();
+        fillEdgesAndAssignThemToStartNodes();
+    }
+
+    private void fillNodes() {
+        addOperatorNodes();
+        addOperandNodes();
+    }
+
+    private void addOperatorNodes() {
         Node node;
-        int index = 0;
-        node = new Node(index++, "+",1);
-        nodesList.add(node);
-        node = new Node(index++, "-",1);
-        nodesList.add(node);
-        node = new Node(index++, "*",1);
-        nodesList.add(node);
-        node = new Node(index++, "/",1);
-        nodesList.add(node);
-        while (minValue <= maxValue) {
-            node = new Node(index, Integer.toString(minValue),-1);
-            nodesList.add(node);
-            index++;
-            minValue++;
+        int nodeId;
+        for (String operator : operators) {
+            nodeId = nodes.size();
+            node = new Node(nodeId, operator,1);
+            nodes.add(node);
         }
-        return nodesList;
     }
 
-    private List createAntsList(int antsNumber) {
-        List<Ant> antsList = new ArrayList<>();
+    private void addOperandNodes() {
+        Node node;
+        int nodeId;
+        for(int i = minNodeValue; i <= maxNodeValue; i++) {
+            nodeId = nodes.size();
+            node = new Node(nodeId, Integer.toString(i),-1);
+            nodes.add(node);
+        }
+    }
+
+    private void fillAnts() {
         Ant ant;
-        for (int index=0; index<antsNumber; index++) {
-            ant = new Ant(index);
-            antsList.add(ant);
+        for (int i=0; i<numberOfAnts; i++) {
+            ant = new Ant(i);
+            ants.add(ant);
         }
-        return antsList;
     }
 
-    private List createEdgesList(List<Node> nodesList, float initFeromones){
-        List<Edge> edgesList = new ArrayList<>();
+    private void fillEdgesAndAssignThemToStartNodes() {
         Edge edge;
-        for (Node startNode : nodesList) {
-            for (Node endNode : nodesList) {
-                if(startNode != endNode) {
-                    edge = new Edge();
-                    edge.setStartNode(startNode);
-                    edge.setEndNode(endNode);
-                    edge.setPheromones(initFeromones);
-                    edgesList.add(edge);
-                    startNode.addEdge(edge);
+        for (Node startNode : nodes) {
+            for (Node endNode : nodes) {
+                edge = new Edge(startNode, endNode, initialFeromones);
+                edges.add(edge);
+                startNode.addEdge(edge);
+            }
+        }
+    }
+
+    private void colonyLifecycle(){
+        for(int i=0; i<numberOfCycles; i++){
+            prepareAnts();
+            antsUpdate();
+            balanceEquation();
+
+            //------------------------------------------wyswietlanie danych----------------------------------------
+            System.out.println("PO BALANSIE:");
+            for (Ant ant : ants) {
+                System.out.print("Ant: " + ant.getId() + " Power: " + ant.getEquationPower() + " Eqation: " );
+                for (Node eqationNode : ant.getVisitedNodes()) {
+                    System.out.print(eqationNode.getData() + " ");
                 }
+                System.out.println();
+            }
+            //-------------------------------------------------------------------------------------------------------
+
+            int bestAntId = getBestSolutionAntId();
+            globalPheromoneUpdate(bestAntId,1);
+        }
+    }
+
+    private void prepareAnts() {
+        for (Ant ant : ants) {
+            resetAnt(ant);
+            setAntStartNode(ant);
+        }
+    }
+
+    private void resetAnt(Ant ant) {
+        ant.clearEdges();
+        ant.clearVisitedNodes();
+        int initialPower = 2;
+        ant.setEquationPower(initialPower);
+    }
+
+    private void setAntStartNode(Ant ant) {
+        int startNodeId = getRandomOperatorNodeId();
+        ant.setCurrentNodeId(startNodeId);
+        Node startNode = nodes.get(startNodeId);
+        ant.addVisitedNode(startNode);
+    }
+
+    private int getRandomOperatorNodeId() {
+        int maxRandom = operators.length;
+        return ThreadLocalRandom.current().nextInt(0, maxRandom);
+    }
+
+    private void antsUpdate() {
+        for (Ant ant : ants){
+            int i=0;
+            while (i < maxIterationsInCycle && ant.getEquationPower() > 0){
+                antUpdate(ant);
+                i++;
             }
         }
-        return edgesList;
     }
 
-    private void setAntsStartingPosition(List<Ant> antsList) {
-        for (Ant ant : antsList) {
-            // zresetuj mrówkę przed rozpoczęciem cyklu
-            ant.clearEdges();
-            ant.clearVisitedNodes();
-            ant.setEquationPower(2);
-            int nodeId = ThreadLocalRandom.current().nextInt(0, 4);
-            ant.setCurrentNode(nodeId);
-        }
-    }
-
-    private Node findNodeById(List<Node> nodesList, int id){
-        for (Node node : nodesList) {
-            if(node.getId() == id){
-                return node;
-            }
-        }
-        return null;
-    }
-
-    private Edge getOriginalEdge(Edge edgeCopy, List<Edge> edgesList){
-        Node startNode = edgeCopy.getStartNode();
-        Node endNode = edgeCopy.getEndNode();
-        for (Edge edge : edgesList) {
-            if (edge.getStartNode() == startNode && edge.getEndNode() == endNode){
-                return edge;
-            }
-        }
-        return null;
-    }
-
-    private void antUpdate(Ant ant, List<Node> nodesList) {
+    private void antUpdate(Ant ant) {
         int startNodeId;
         int endNodeId;
         Node startNode;
         Node endNode;
         Edge edge;
 
-        startNodeId = ant.getCurrentNode();
-        startNode = findNodeById(nodesList,startNodeId);
-
-        // dodaj węzeł startowy do listy odwiedzonych węzłów
-        if(ant.getVisitedNodes().isEmpty()){
-            ant.addVisitedNode(startNode);
-        }
+        startNodeId = ant.getCurrentNodeId();
+        startNode = nodes.get(startNodeId);
 
         List<Edge> candidateEdges = startNode.getEdges();
-        float [] probabilities = new float[candidateEdges.size()];
-        float probabilitiesSum = 0f;
+        float [] pickProbabilities = new float[candidateEdges.size()];
+        float pickProbabilitiesSum = 0f;
 
-        int i = 0;
+        //dla kazdej krawedzi wyznacza prawdopodobienstwo wyboru i dodaje je do sumy
         for (Edge candidateEdge : candidateEdges) {
-            float probability;
             float candidateEdgePheromones = candidateEdge.getPheromones();
 
-            // wg pracy magisterskiej studenta - pomijam wpływ długości wyrażenia
-            float nodeVisibility = getNodeVisibilityValue(candidateEdge.getEndNode().getNodePower() + ant.getEquationPower());
+            float nodeVisibility = getNodeVisibility(candidateEdge.getEndNode().getNodePower() + ant.getEquationPower());
 
-            if(localUpdatePheromones){
-            // sprawdz tablicę odwiedzonych krawędzi przez mrówkę
-                for (Edge antEdge : ant.getEdges()) {
-
-                    //jeżeli znajdziesz kopię krawędzi krawędź
-                    if(antEdge.getStartNode() == candidateEdge.getStartNode() && antEdge.getEndNode() == candidateEdge.getEndNode()){
-
-                        //wybierz najwyższą(ostatnią) wartość sładu feromonowego
-                        if(candidateEdgePheromones <= antEdge.getPheromones()){
-                            candidateEdgePheromones = antEdge.getPheromones();
-                        }
+            if(localPheromones) {
+                List<Edge> antEdges = ant.getEdges();
+                for (Edge antEdge : antEdges) {
+                    if(antEdge.isCopyOf(candidateEdge) && antEdge.pheromonesStrongerThan(candidateEdgePheromones)) {
+                        candidateEdgePheromones = antEdge.getPheromones();
                     }
                 }
+
             }
 
-            // wyznacz prawdopodobienstwo wybrania wezla i dodaj je do tablicy prawdopodobienstw
-            probability = candidateEdgePheromones * nodeVisibility;
-            probabilities[i++] = probability;
-            probabilitiesSum += probability;
+            float probability = candidateEdgePheromones * nodeVisibility;
+            int i = candidateEdges.indexOf(candidateEdge);
+            pickProbabilities[i] = probability;
+            pickProbabilitiesSum += probability;
         }
 
-        // wylosowanie q - wybór między eksploracją a eksploatacją
-        float q = 0 + new Random().nextFloat() * (1 - 0);
 
-        int edgeIndex;
-        if(q <= q0) {
-            edgeIndex = getEdgeExploitation(probabilities);
-        } else {
-            edgeIndex = getEdgeExploration(probabilities, probabilitiesSum);
-        }
-
+        int edgeIndex = chooseEdgeToGo(pickProbabilities, pickProbabilitiesSum);
         edge = candidateEdges.get(edgeIndex);
 
         // pobranie i zapis węzła, w którym mrówka się będzie znajdować
         endNode = edge.getEndNode();
         endNodeId = endNode.getId();
-        ant.setCurrentNode(endNodeId);
+        ant.setCurrentNodeId(endNodeId);
 
         // dodaj nowy węzeł do listy odwiedzonych węzłów
         ant.addVisitedNode(endNode);
@@ -182,36 +191,46 @@ public class AntColonySystem {
         int selectedNodePower = endNode.getNodePower();
         ant.setEquationPower(currentPower + selectedNodePower);
 
-        // utwórz kopię krawędzi (wymagane ze względu na opcjonalną obsługę feromonu lokalnego)
         Edge edgeCopy = new Edge(edge);
 
-        if(localUpdatePheromones){
-            // aktualizuj lokalny ślad feromonowy
-            float newLocalPheromones = (1f - ro) * edgeCopy.getPheromones() + ro * initialFeromonesValue;
-            edgeCopy.setPheromones(newLocalPheromones);
-        }
+        if(localPheromones)
+            localPheromoneUpdate(edgeCopy);
 
         // zapisz kopię wybranej krawędzi do tablicy krawędzi mrówki
         ant.addEdge(edgeCopy);
     }
 
-    // funkcja widoczności węzła (mam wrażenie, że długość wyrażenia w tym wypadku nie ma żadnego znaczenia)
-    private float getNodeVisibilityValue(int eqationPower){
-        return (float) 1/(2+eqationPower);
+    private void localPheromoneUpdate(Edge edgeCopy) {
+        float newLocalPheromones = (1f - vaporizeFactor) * edgeCopy.getPheromones() + vaporizeFactor * initialFeromones;
+        edgeCopy.setPheromones(newLocalPheromones);
     }
 
-    private int getEdgeExploitation(float [] probs){
+    private float getNodeVisibility(int equationPower) {
+        return (float) 1 / (2 + equationPower);
+    }
+
+    private int chooseEdgeToGo(float[] pickProbability, float pickProbabilitySum) {
+        float q = ThreadLocalRandom.current().nextFloat();
+        int index;
+        if(q <= exploitationFactor)
+            index = getEdgeExploitation(pickProbability);
+        else
+            index = getEdgeExploration(pickProbability, pickProbabilitySum);
+        return index;
+    }
+
+    private int getEdgeExploitation(float [] probabilities) {
         float maxValue=0;
         int maxIndex=-1;
         int amount = 0;
 
         //poszukiwanie maksymalnej wartości prawdopodobieństwa
-        for (int i=0; i<probs.length; i++) {
-            if(probs[i]>maxValue){
-                maxValue = probs[i];
+        for (int i=0; i<probabilities.length; i++) {
+            if(probabilities[i]>maxValue){
+                maxValue = probabilities[i];
                 amount = 1;
                 maxIndex = i;
-            } else if(probs[i] == maxValue){
+            } else if(probabilities[i] == maxValue){
                 amount++;
             }
         }
@@ -219,8 +238,8 @@ public class AntColonySystem {
         //jeżeli kilka maksymalnych wartości przeprowadź losowanie
         if(amount>1){
             int [] maxIndexArr = new int[amount];
-            for (int i=0; i<probs.length; i++){
-                if(probs[i] == maxValue){
+            for (int i=0; i<probabilities.length; i++){
+                if(probabilities[i] == maxValue){
                     maxIndexArr[--amount] = i;
                 }
             }
@@ -229,16 +248,16 @@ public class AntColonySystem {
         return maxIndex;
     }
 
-    private int getEdgeExploration(float [] probs, float probsSum){
-        for (int i=0; i<probs.length; i++) {
-            probs[i] /= probsSum;
+    private int getEdgeExploration(float [] probabilities, float probabilitiesSum){
+        for (int i=0; i<probabilities.length; i++) {
+            probabilities[i] /= probabilitiesSum;
         }
-        int index = getRandomIntWithProbabilities(probs);
+        int index = getRandomIntWithProbabilities(probabilities);
         return index;
     }
 
-    private int getRandomIntWithProbabilities(float [] probs){
-        float [] probabilitiesSum = probs.clone();
+    private int getRandomIntWithProbabilities(float [] probabilities){
+        float [] probabilitiesSum = probabilities.clone();
 
         // obliczenie kolejnych sum prawdopodobieństw
         for (int i=1; i<probabilitiesSum.length; i++){
@@ -246,7 +265,7 @@ public class AntColonySystem {
         }
 
         // wygenerowanie liczby losowej z przedziału [0; 1)
-        float randomValue = 0 + new Random().nextFloat() * (1 - 0);
+        float randomValue = ThreadLocalRandom.current().nextFloat();
 
         // sprawdzenie jakiej ona odpowiada liczbie całkowitej z przedziału [0; 1)
         for (int i=0; i<probabilitiesSum.length; i++){
@@ -257,11 +276,11 @@ public class AntColonySystem {
         return -1;
     }
 
-    private void balanceEquation(List<Ant> antsList){
+    private void balanceEquation(){
         //jeżeli wyrażenie z samych znaków -> wstaw emergencyNode do listy węzłów mrówki
         Node emergencyNode = new Node(-1,"0",-1);
 
-        for (Ant ant : antsList){
+        for (Ant ant : ants){
             int operatorsToRemove = ant.getEquationPower();
             for(int i=0; i<operatorsToRemove; i++){
                 boolean operatorToRemove = true;
@@ -308,12 +327,12 @@ public class AntColonySystem {
         }
     }
 
-    private void globalPheromoneUpdate(List<Ant> antsList, List<Edge> edgesList){
+    private int getBestSolutionAntId() {
         PrefixExpressionHandler prefixExpressionHandler = new PrefixExpressionHandler();
         int bestAntIndex = -1;
         float bestAntQuality = -100f;
-        for (Ant ant : antsList) {
-            //float antSolutionQuality = calculateQualityFunctionOfSolution();  <=  rozegranie gier pomiędzy rozwiązaniami
+
+        for (Ant ant : ants) {
             float antSolutionQuality = prefixExpressionHandler.evaluatePrefix(ant.getVisitedNodes());
             if(antSolutionQuality > bestAntQuality){
                 bestAntQuality = antSolutionQuality;
@@ -321,66 +340,27 @@ public class AntColonySystem {
             }
         }
         System.out.println("Winner: Ant " + bestAntIndex + " Score: " + bestAntQuality);
+        return bestAntIndex;
+    }
 
+    private void globalPheromoneUpdate(int bestAntIndex, float victoryRate) {
+        Ant bestAnt = ants.get(bestAntIndex);
         Edge originalEdge;
-        Ant bestAnt = antsList.get(bestAntIndex);
-
+        float currentPheromones;
         for (Edge antEdge : bestAnt.getEdges()){
-            originalEdge = getOriginalEdge(antEdge,edgesList);
-
-            float currentPheromones = originalEdge.getPheromones();
-            currentPheromones = (1 - ro) * currentPheromones + ro * bestAntQuality;
-
+            originalEdge = getOriginalEdge(antEdge);
+            currentPheromones = originalEdge.getPheromones();
+            currentPheromones = (1 - vaporizeFactor) * currentPheromones + vaporizeFactor * victoryRate;
             originalEdge.setPheromones(currentPheromones);
         }
-
     }
 
-    private void antsUpdate(List<Ant> antsList, int maxIterations, List<Node> nodesList){
-        for (Ant ant : antsList){
-            int i=0;
-            while (i<maxIterations && ant.getEquationPower() > 0){
-                antUpdate(ant,nodesList);
-                i++;
-            }
-//            System.out.print("Ant: " + ant.getId() + " Power: " + ant.getEquationPower() + " Eqation: " );
-//            for (Node eqationNode : ant.getVisitedNodes()) {
-//                System.out.print(eqationNode.getData() + "");
-//            }
-//            System.out.println();
-//            for (Edge visitedEdge : ant.getEdges()) {
-//                System.out.print(visitedEdge.getStartNode().getData() + " -> " + visitedEdge.getEndNode().getData() + ", ");
-//            }
-//            System.out.println();
-        }
-    }
-
-    private void antsCycle(List<Ant> antsList, List<Node> nodesList, List<Edge> edgesList, int maxIterations, int cycles){
-        for(int cycle=0;cycle<cycles;cycle++){
-
-            System.out.println("cycle " + cycle);
-
-            setAntsStartingPosition(antsList);
-
-            antsUpdate(antsList,maxIterations,nodesList);
-
-            balanceEquation(antsList);
-
-            System.out.println("PO BALANSIE:");
-            for (Ant ant : antsList) {
-                System.out.print("Ant: " + ant.getId() + " Power: " + ant.getEquationPower() + " Eqation: " );
-                for (Node eqationNode : ant.getVisitedNodes()) {
-                    System.out.print(eqationNode.getData() + " ");
-                }
-                System.out.println();
-            }
-
-            globalPheromoneUpdate(antsList,edgesList);
-
-            for (Edge edge: edgesList) {
-                System.out.println(edge.toString());
+    private Edge getOriginalEdge(Edge edgeCopy) {
+        for (Edge edge : edges) {
+            if (edgeCopy.isCopyOf(edge)){
+                return edge;
             }
         }
+        return null;
     }
-
 }
