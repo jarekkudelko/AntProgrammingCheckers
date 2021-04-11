@@ -6,7 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class AntColonySystem {
 
-    private static String[] operators = {"+", "-", "*", "/"};
+    private final String[] operators = {"+", "-", "*", "/"};
 
     private int numberOfAnts = 3;
     private int numberOfCycles = 3;
@@ -97,8 +97,16 @@ public class AntColonySystem {
             }
             //-------------------------------------------------------------------------------------------------------
 
+            for (Edge edge: edges) {
+                System.out.println(edge.toString());
+            }
+
             int bestAntId = getBestSolutionAntId();
             globalPheromoneUpdate(bestAntId,1);
+
+            for (Edge edge: edges) {
+                System.out.println(edge.toString());
+            }
         }
     }
 
@@ -131,149 +139,12 @@ public class AntColonySystem {
     private void antsUpdate() {
         for (Ant ant : ants){
             int i=0;
-            while (i < maxIterationsInCycle && ant.getEquationPower() > 0){
-                antUpdate(ant);
+            while (i < maxIterationsInCycle && ant.getEquationPower() > 0) {
+                AntMove antMove = new AntMove(ant, nodes, localPheromones, vaporizeFactor, initialFeromones, exploitationFactor);
+                antMove.antUpdate();
                 i++;
             }
         }
-    }
-
-    private void antUpdate(Ant ant) {
-        int startNodeId;
-        int endNodeId;
-        Node startNode;
-        Node endNode;
-        Edge edge;
-
-        startNodeId = ant.getCurrentNodeId();
-        startNode = nodes.get(startNodeId);
-
-        List<Edge> candidateEdges = startNode.getEdges();
-        float [] pickProbabilities = new float[candidateEdges.size()];
-        float pickProbabilitiesSum = 0f;
-
-        //dla kazdej krawedzi wyznacza prawdopodobienstwo wyboru i dodaje je do sumy
-        for (Edge candidateEdge : candidateEdges) {
-            float candidateEdgePheromones = candidateEdge.getPheromones();
-
-            float nodeVisibility = getNodeVisibility(candidateEdge.getEndNode().getNodePower() + ant.getEquationPower());
-
-            if(localPheromones) {
-                List<Edge> antEdges = ant.getEdges();
-                for (Edge antEdge : antEdges) {
-                    if(antEdge.isCopyOf(candidateEdge) && antEdge.pheromonesStrongerThan(candidateEdgePheromones)) {
-                        candidateEdgePheromones = antEdge.getPheromones();
-                    }
-                }
-
-            }
-
-            float probability = candidateEdgePheromones * nodeVisibility;
-            int i = candidateEdges.indexOf(candidateEdge);
-            pickProbabilities[i] = probability;
-            pickProbabilitiesSum += probability;
-        }
-
-
-        int edgeIndex = chooseEdgeToGo(pickProbabilities, pickProbabilitiesSum);
-        edge = candidateEdges.get(edgeIndex);
-
-        // pobranie i zapis węzła, w którym mrówka się będzie znajdować
-        endNode = edge.getEndNode();
-        endNodeId = endNode.getId();
-        ant.setCurrentNodeId(endNodeId);
-
-        // dodaj nowy węzeł do listy odwiedzonych węzłów
-        ant.addVisitedNode(endNode);
-
-        // aktualziacja siły wyrażenia
-        int currentPower = ant.getEquationPower();
-        int selectedNodePower = endNode.getNodePower();
-        ant.setEquationPower(currentPower + selectedNodePower);
-
-        Edge edgeCopy = new Edge(edge);
-
-        if(localPheromones)
-            localPheromoneUpdate(edgeCopy);
-
-        // zapisz kopię wybranej krawędzi do tablicy krawędzi mrówki
-        ant.addEdge(edgeCopy);
-    }
-
-    private void localPheromoneUpdate(Edge edgeCopy) {
-        float newLocalPheromones = (1f - vaporizeFactor) * edgeCopy.getPheromones() + vaporizeFactor * initialFeromones;
-        edgeCopy.setPheromones(newLocalPheromones);
-    }
-
-    private float getNodeVisibility(int equationPower) {
-        return (float) 1 / (2 + equationPower);
-    }
-
-    private int chooseEdgeToGo(float[] pickProbability, float pickProbabilitySum) {
-        float q = ThreadLocalRandom.current().nextFloat();
-        int index;
-        if(q <= exploitationFactor)
-            index = getEdgeExploitation(pickProbability);
-        else
-            index = getEdgeExploration(pickProbability, pickProbabilitySum);
-        return index;
-    }
-
-    private int getEdgeExploitation(float [] probabilities) {
-        float maxValue=0;
-        int maxIndex=-1;
-        int amount = 0;
-
-        //poszukiwanie maksymalnej wartości prawdopodobieństwa
-        for (int i=0; i<probabilities.length; i++) {
-            if(probabilities[i]>maxValue){
-                maxValue = probabilities[i];
-                amount = 1;
-                maxIndex = i;
-            } else if(probabilities[i] == maxValue){
-                amount++;
-            }
-        }
-
-        //jeżeli kilka maksymalnych wartości przeprowadź losowanie
-        if(amount>1){
-            int [] maxIndexArr = new int[amount];
-            for (int i=0; i<probabilities.length; i++){
-                if(probabilities[i] == maxValue){
-                    maxIndexArr[--amount] = i;
-                }
-            }
-            maxIndex = maxIndexArr[ThreadLocalRandom.current().nextInt(0, maxIndexArr.length)];
-        }
-        return maxIndex;
-    }
-
-    private int getEdgeExploration(float [] probabilities, float probabilitiesSum){
-        for (int i=0; i<probabilities.length; i++) {
-            probabilities[i] /= probabilitiesSum;
-        }
-        int index = getRandomIntWithProbabilities(probabilities);
-        return index;
-    }
-
-    private int getRandomIntWithProbabilities(float [] probabilities){
-        float [] probabilitiesSum = probabilities.clone();
-
-        // obliczenie kolejnych sum prawdopodobieństw
-        for (int i=1; i<probabilitiesSum.length; i++){
-            probabilitiesSum[i] += probabilitiesSum[i-1];
-        }
-
-        // wygenerowanie liczby losowej z przedziału [0; 1)
-        float randomValue = ThreadLocalRandom.current().nextFloat();
-
-        // sprawdzenie jakiej ona odpowiada liczbie całkowitej z przedziału [0; 1)
-        for (int i=0; i<probabilitiesSum.length; i++){
-            if(randomValue < probabilitiesSum[i]){
-                return i;
-            }
-        }
-        return -1;
     }
 
     private void balanceEquation(){
