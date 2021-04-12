@@ -16,11 +16,11 @@ public class Edge {
         this(that.getStartNode(),that.getEndNode(),that.getPheromones());
     }
 
-    boolean isCopyOf(Edge original) {
+    public boolean isCopyOf(Edge original) {
         return getStartNode() == original.getStartNode() && getEndNode() == original.getEndNode();
     }
 
-    boolean pheromonesStrongerThan(float originalEdgePheromones) {
+    public boolean pheromonesStrongerThan(float originalEdgePheromones) {
         return originalEdgePheromones <= getPheromones();
     }
 

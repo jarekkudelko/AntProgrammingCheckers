@@ -1,4 +1,8 @@
-package com.antcheckers.antcolony;
+package com.antcheckers.antcolony.move;
+
+import com.antcheckers.antcolony.Ant;
+import com.antcheckers.antcolony.Edge;
+import com.antcheckers.antcolony.Node;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +18,6 @@ public class AntMove {
     private float exploitationFactor;
 
     private List<Edge> candidateEdges = new ArrayList<>();
-    private float edgesAttractivenessSum = 0f;
     private float [] edgesAttractiveness;
 
     public AntMove(Ant ant, List<Node> nodes, boolean localPheromones, float vaporizeFactor, float initialPheromones, float exploitationFactor) {
@@ -29,8 +32,6 @@ public class AntMove {
     public void antUpdate() {
         getCandidateEdges();
         setEdgesAttractiveness();
-        setEdgesAttractivenessSum();
-
         int edgeIndex = getChosenEdgeId();
         addEdgeCopy(edgeIndex);
     }
@@ -72,93 +73,19 @@ public class AntMove {
         return candidateEdgePheromones;
     }
 
-    private void setEdgesAttractivenessSum() {
-        for (float probability : edgesAttractiveness) {
-            edgesAttractivenessSum += probability;
-        }
-    }
-
     private float getNodeVisibility(int equationPower) {
         return (float) 1 / (2 + equationPower);
     }
 
     private int getChosenEdgeId() {
         float q = ThreadLocalRandom.current().nextFloat();
-        int index;
-        if(q <= exploitationFactor)
-            index = getIndexByExploitation();
-        else
-            index = getIndexByExploration();
-        return index;
-    }
-
-    private int getIndexByExploitation() {
-        float maxValue=0;
-        int maxIndex=-1;
-        int amount = 0;
-
-        //poszukiwanie maksymalnej wartości prawdopodobieństwa
-        for (int i = 0; i< edgesAttractiveness.length; i++) {
-            if(edgesAttractiveness[i]>maxValue){
-                maxValue = edgesAttractiveness[i];
-                amount = 1;
-                maxIndex = i;
-            } else if(edgesAttractiveness[i] == maxValue){
-                amount++;
-            }
+        if(q <= exploitationFactor) {
+            Exploitation exploitation = new Exploitation(edgesAttractiveness);
+            return exploitation.getEdgeIndex();
+        } else {
+            Exploration exploration = new Exploration(edgesAttractiveness);
+            return exploration.getEdgeIndex();
         }
-
-        //jeżeli kilka maksymalnych wartości przeprowadź losowanie
-        if(amount>1){
-            int [] maxIndexArr = new int[amount];
-            for (int i = 0; i< edgesAttractiveness.length; i++){
-                if(edgesAttractiveness[i] == maxValue){
-                    maxIndexArr[--amount] = i;
-                }
-            }
-            maxIndex = maxIndexArr[ThreadLocalRandom.current().nextInt(0, maxIndexArr.length)];
-        }
-        return maxIndex;
-    }
-
-    private int getIndexByExploration() {
-        float[] edgesPickProbabilities = getPickProbabilities();
-        int index = getRandomEdgeIndex(edgesPickProbabilities);
-        return index;
-    }
-
-    private float[] getPickProbabilities() {
-        float [] probabilities = edgesAttractiveness.clone();
-        calculatePickProbabilities(probabilities);
-        return probabilities;
-    }
-
-    private void calculatePickProbabilities(float[] probabilities) {
-        for (int i=0; i<probabilities.length; i++) {
-            probabilities[i] /= edgesAttractivenessSum;
-        }
-    }
-
-    private int getRandomEdgeIndex(float [] probabilities){
-        calculateProbabilitiesRanges(probabilities);
-        int index = getOccupiedRangeIndex(probabilities);
-        return index;
-    }
-
-    private void calculateProbabilitiesRanges(float[] probabilities) {
-        for (int i=1; i<probabilities.length; i++){
-            probabilities[i] += probabilities[i-1];
-        }
-    }
-
-    private int getOccupiedRangeIndex(float[] probabilities) {
-        int index = -1;
-        float randomValue = ThreadLocalRandom.current().nextFloat();
-        for (int i=0; i<probabilities.length; i++) {
-            if(randomValue < probabilities[i])
-                index = i;
-        }
-        return index;
     }
 
     private void addEdgeCopy(int edgeIndex) {
@@ -183,5 +110,4 @@ public class AntMove {
         float newLocalPheromones = (1f - vaporizeFactor) * edgeCopy.getPheromones() + vaporizeFactor * initialPheromones;
         edgeCopy.setPheromones(newLocalPheromones);
     }
-
 }
