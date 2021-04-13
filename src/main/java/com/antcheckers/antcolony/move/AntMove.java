@@ -4,25 +4,23 @@ import com.antcheckers.antcolony.Ant;
 import com.antcheckers.antcolony.Edge;
 import com.antcheckers.antcolony.Node;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class AntMove {
 
     private Ant ant;
-    private List<Node> nodes;
     private boolean localPheromones;
     private float vaporizeFactor;
     private float initialPheromones;
     private float exploitationFactor;
 
-    private List<Edge> candidateEdges = new ArrayList<>();
+    Node startNode;
+    private List<Edge> candidateEdges;
     private float [] edgesAttractiveness;
 
-    public AntMove(Ant ant, List<Node> nodes, boolean localPheromones, float vaporizeFactor, float initialPheromones, float exploitationFactor) {
+    public AntMove(Ant ant, boolean localPheromones, float vaporizeFactor, float initialPheromones, float exploitationFactor) {
         this.ant = ant;
-        this.nodes = nodes;
         this.localPheromones = localPheromones;
         this.vaporizeFactor = vaporizeFactor;
         this.initialPheromones = initialPheromones;
@@ -37,9 +35,9 @@ public class AntMove {
     }
 
     private void getCandidateEdges() {
-        int startNodeId = ant.getCurrentNodeId();
-        Node startNode = nodes.get(startNodeId);
-        candidateEdges = startNode.getEdges();
+        List<Node> antNodes = ant.getVisitedNodes();
+        startNode = antNodes.get(antNodes.size() - 1);
+        candidateEdges = startNode.getCandidateEdges();
     }
 
     private void setEdgesAttractiveness(){
@@ -92,8 +90,6 @@ public class AntMove {
         Edge edge = candidateEdges.get(edgeIndex);
 
         Node endNode = edge.getEndNode();
-        int endNodeId = endNode.getId();
-        ant.setCurrentNodeId(endNodeId);
         ant.addVisitedNode(endNode);
 
         int currentPower = ant.getEquationPower();

@@ -14,14 +14,14 @@ public class AntColonySystem {
     private int numberOfCycles = 3;
     private int maxIterationsInCycle = 12;
 
-    private int minNodeValue = 1;
+    private int minNodeValue = -1;
     private int maxNodeValue = 2;
 
-    private float initialFeromones = 0.01f;
+    private float initialFeromones = 0.001f;
     private boolean localPheromones = true;
 
     private float vaporizeFactor = 0.1f;
-    private float exploitationFactor = 0.5f;
+    private float exploitationFactor = 0.2f;
 
     private List<Node> nodes = new ArrayList<>();
     private List<Ant> ants = new ArrayList<>();
@@ -45,20 +45,16 @@ public class AntColonySystem {
 
     private void addOperatorNodes() {
         Node node;
-        int nodeId;
         for (String operator : operators) {
-            nodeId = nodes.size();
-            node = new Node(nodeId, operator,1);
+            node = new Node(operator,1);
             nodes.add(node);
         }
     }
 
     private void addOperandNodes() {
         Node node;
-        int nodeId;
         for(int i = minNodeValue; i <= maxNodeValue; i++) {
-            nodeId = nodes.size();
-            node = new Node(nodeId, Integer.toString(i),-1);
+            node = new Node(Integer.toString(i),-1);
             nodes.add(node);
         }
     }
@@ -86,9 +82,8 @@ public class AntColonySystem {
         for(int i=0; i<numberOfCycles; i++){
             prepareAnts();
             antsUpdate();
-            balanceEquation();
+            balanceAntsEquations();
 
-            //------------------------------------------wyswietlanie danych----------------------------------------
             System.out.println("PO BALANSIE:");
             for (Ant ant : ants) {
                 System.out.print("Ant: " + ant.getId() + " Power: " + ant.getEquationPower() + " Eqation: " );
@@ -97,18 +92,9 @@ public class AntColonySystem {
                 }
                 System.out.println();
             }
-            //-------------------------------------------------------------------------------------------------------
-
-            for (Edge edge: edges) {
-                System.out.println(edge.toString());
-            }
 
             int bestAntId = getBestSolutionAntId();
             globalPheromoneUpdate(bestAntId,1);
-
-            for (Edge edge: edges) {
-                System.out.println(edge.toString());
-            }
         }
     }
 
@@ -128,7 +114,6 @@ public class AntColonySystem {
 
     private void setAntStartNode(Ant ant) {
         int startNodeId = getRandomOperatorNodeId();
-        ant.setCurrentNodeId(startNodeId);
         Node startNode = nodes.get(startNodeId);
         ant.addVisitedNode(startNode);
     }
@@ -142,71 +127,26 @@ public class AntColonySystem {
         for (Ant ant : ants){
             int i=0;
             while (i < maxIterationsInCycle && ant.getEquationPower() > 0) {
-                AntMove antMove = new AntMove(ant, nodes, localPheromones, vaporizeFactor, initialFeromones, exploitationFactor);
+                AntMove antMove = new AntMove(ant, localPheromones, vaporizeFactor, initialFeromones, exploitationFactor);
                 antMove.antUpdate();
                 i++;
             }
         }
     }
 
-    private void balanceEquation(){
-        //jeżeli wyrażenie z samych znaków -> wstaw emergencyNode do listy węzłów mrówki
-        Node emergencyNode = new Node(-1,"0",-1);
-
+    private void balanceAntsEquations(){
         for (Ant ant : ants){
-            int operatorsToRemove = ant.getEquationPower();
-            for(int i=0; i<operatorsToRemove; i++){
-                boolean operatorToRemove = true;
-
-                //przejrzyj listę od prawej do lewej
-                for(int index = ant.getVisitedNodes().size() - 1; index>=0; index--){
-
-                    //jeżeli trafisz na operator, usuń go i zmniejsz siłę wyrażenia o 1
-                    if (operatorToRemove && ant.getVisitedNodes().get(index).getNodePower() == 1){
-
-                        //jeżeli operator do usunięcia znajduje się na końcu listy
-                        if (index == ant.getVisitedNodes().size() - 1){
-                            //jeżeli mrówki stworzyły wyrażenie składające się z samych znaków
-                            if(index - 1 == -1){
-                                ant.addVisitedNode(emergencyNode);
-                            } else {
-                                ant.getEdges().remove(index - 1);
-                            }
-                        } else if(index < ant.getVisitedNodes().size() - 1 && index != 0){
-                            // w wyniku podmieniania jedej z wewnetrznych krawedzi moze dojsc do sytuacji
-                            // ze startNode i endNode są takie same, w tym wypadku należy obsłużyć takie
-                            // zdarzenie w globalnej aktualizacji sladu feromonowego pomijając taką krawędź
-
-                            Node startNode = ant.getEdges().get(index - 1).getStartNode();
-                            Node endNode = ant.getEdges().get(index).getEndNode();
-                            Edge dummyEdge = new Edge(startNode,endNode,-100f);
-                            ant.getEdges().remove(index);
-                            ant.getEdges().remove(index-1);
-                            ant.addEdgeToPosition(index - 1,dummyEdge);
-                        }
-                        //jeżeli operator do usunięcia znajduje się na początku listy
-                        else if (index == 0){
-                            // moze dojsc do sytuacji, ze w liscie visitedNodes bedzie tylko jeden wezel
-                            // a lista krawedzi mrowki bedzie pusta - taką sytuację też trzeba obsłużyć w aktualziacji sladu feromonowego
-                            ant.getEdges().remove(index);
-                        }
-
-                        operatorToRemove = false;
-                        ant.getVisitedNodes().remove(index);
-                        ant.setEquationPower((ant.getEquationPower() - 1));
-                    }
-                }
-            }
+            ant.balanceEquation();
         }
     }
 
     private int getBestSolutionAntId() {
-        PrefixExpressionHandler prefixExpressionHandler = new PrefixExpressionHandler();
+        PrefixCalculator prefixCalculator = new PrefixCalculator();
         int bestAntIndex = -1;
         float bestAntQuality = -100f;
 
         for (Ant ant : ants) {
-            float antSolutionQuality = prefixExpressionHandler.evaluatePrefix(ant.getVisitedNodes());
+            float antSolutionQuality = prefixCalculator.evaluate(ant.getVisitedNodes());
             if(antSolutionQuality > bestAntQuality){
                 bestAntQuality = antSolutionQuality;
                 bestAntIndex = ant.getId();

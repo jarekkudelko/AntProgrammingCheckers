@@ -5,20 +5,14 @@ import java.util.List;
 
 public class Node {
 
-    private int id;
     private String data;
     private int nodePower;
-    private List<Edge> edges;
+    private List<Edge> candidateEdges;
 
-    public Node(int id, String data, int nodePower) {
-        this.id = id;
+    public Node(String data, int nodePower) {
         this.data = data;
         this.nodePower = nodePower;
-        edges = new ArrayList<>();
-    }
-
-    public int getId() {
-        return id;
+        candidateEdges = new ArrayList<>();
     }
 
     public String getData() {
@@ -30,20 +24,27 @@ public class Node {
     }
 
     public void addEdge(Edge edge) {
-        edges.add(edge);
+        candidateEdges.add(edge);
     }
 
-    public List<Edge> getEdges() {
-        return edges;
+    public List<Edge> getCandidateEdges() {
+        return candidateEdges;
+    }
+
+    public boolean isOperand(){
+        return nodePower == -1;
+    }
+
+    public boolean isOperator(){
+        return nodePower == 1;
     }
 
     @Override
     public String toString() {
         return "Node{" +
-                "id=" + id +
-                ", data='" + data + '\'' +
+                "data='" + data + '\'' +
                 ", nodePower=" + nodePower +
-                ", edgesConected=" + edges.size() +
+                ", edgesConected=" + candidateEdges.size() +
                 '}';
     }
 }
