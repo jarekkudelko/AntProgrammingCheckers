@@ -15,7 +15,6 @@ public class AntMove {
     private float initialPheromones;
     private float exploitationFactor;
 
-    Node startNode;
     private List<Edge> candidateEdges;
     private float [] edgesAttractiveness;
 
@@ -36,7 +35,7 @@ public class AntMove {
 
     private void getCandidateEdges() {
         List<Node> antNodes = ant.getVisitedNodes();
-        startNode = antNodes.get(antNodes.size() - 1);
+        Node startNode = antNodes.get(antNodes.size() - 1);
         candidateEdges = startNode.getCandidateEdges();
     }
 

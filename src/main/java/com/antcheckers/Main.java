@@ -1,10 +1,10 @@
 package com.antcheckers;
 
-import com.antcheckers.antcolony.AntColonySystem;
+import com.antcheckers.antcolony.AntColony;
 
 public class Main {
     public static void main(String[] args) {
-        AntColonySystem antColonySystem = new AntColonySystem();
-        antColonySystem.run();
+        AntColony antColony = new AntColony();
+        antColony.run();
     }
 }

@@ -6,53 +6,44 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class AntColonySystem {
+public class AntSystem {
 
-    private final String[] operators = {"+", "-", "*", "/"};
+    private final static String[] operators = {"+", "-", "*", "/"};
 
-    private int numberOfAnts = 3;
-    private int numberOfCycles = 3;
-    private int maxIterationsInCycle = 12;
+    private int numberOfAnts;
+    private int maxIterationsInCycle;
 
-    private int minNodeValue = -1;
-    private int maxNodeValue = 2;
+    private float initialPheromones;
+    private boolean localPheromones ;
 
-    private float initialFeromones = 0.001f;
-    private boolean localPheromones = true;
-
-    private float vaporizeFactor = 0.1f;
-    private float exploitationFactor = 0.2f;
+    private float vaporizeFactor;
+    private float exploitationFactor;
 
     private List<Node> nodes = new ArrayList<>();
     private List<Ant> ants = new ArrayList<>();
     private List<Edge> edges = new ArrayList<>();
 
-    public void run() {
-        setColonyLists();
-        colonyLifecycle();
+    public AntSystem(int numberOfAnts, int maxIterationsInCycle, float initialPheromones, boolean localPheromones, float vaporizeFactor, float exploitationFactor) {
+        this.numberOfAnts = numberOfAnts;
+        this.maxIterationsInCycle = maxIterationsInCycle;
+        this.initialPheromones = initialPheromones;
+        this.localPheromones = localPheromones;
+        this.vaporizeFactor = vaporizeFactor;
+        this.exploitationFactor = exploitationFactor;
     }
 
-    private void setColonyLists() {
-        fillNodes();
+    public void setLists(int minNodeValue, int maxNodeValue) {
+        fillNodes(minNodeValue, maxNodeValue);
         fillAnts();
         fillEdgesAndAssignThemToStartNodes();
     }
 
-    private void fillNodes() {
-        addOperatorNodes();
-        addOperandNodes();
-    }
-
-    private void addOperatorNodes() {
+    private void fillNodes(int minNodeValue, int maxNodeValue) {
         Node node;
         for (String operator : operators) {
             node = new Node(operator,1);
             nodes.add(node);
         }
-    }
-
-    private void addOperandNodes() {
-        Node node;
         for(int i = minNodeValue; i <= maxNodeValue; i++) {
             node = new Node(Integer.toString(i),-1);
             nodes.add(node);
@@ -71,31 +62,17 @@ public class AntColonySystem {
         Edge edge;
         for (Node startNode : nodes) {
             for (Node endNode : nodes) {
-                edge = new Edge(startNode, endNode, initialFeromones);
+                edge = new Edge(startNode, endNode, initialPheromones);
                 edges.add(edge);
                 startNode.addEdge(edge);
             }
         }
     }
 
-    private void colonyLifecycle(){
-        for(int i=0; i<numberOfCycles; i++){
+    public float[] antsUpdate(){
             prepareAnts();
-            antsUpdate();
-            balanceAntsEquations();
-
-            System.out.println("PO BALANSIE:");
-            for (Ant ant : ants) {
-                System.out.print("Ant: " + ant.getId() + " Power: " + ant.getEquationPower() + " Eqation: " );
-                for (Node eqationNode : ant.getVisitedNodes()) {
-                    System.out.print(eqationNode.getData() + " ");
-                }
-                System.out.println();
-            }
-
-            int bestAntId = getBestSolutionAntId();
-            globalPheromoneUpdate(bestAntId,1);
-        }
+            runAntsCycle();
+            return getEstimatedAntsEquations();
     }
 
     private void prepareAnts() {
@@ -123,40 +100,28 @@ public class AntColonySystem {
         return ThreadLocalRandom.current().nextInt(0, maxRandom);
     }
 
-    private void antsUpdate() {
+    private void runAntsCycle() {
         for (Ant ant : ants){
             int i=0;
             while (i < maxIterationsInCycle && ant.getEquationPower() > 0) {
-                AntMove antMove = new AntMove(ant, localPheromones, vaporizeFactor, initialFeromones, exploitationFactor);
+                AntMove antMove = new AntMove(ant, localPheromones, vaporizeFactor, initialPheromones, exploitationFactor);
                 antMove.antUpdate();
                 i++;
             }
         }
     }
 
-    private void balanceAntsEquations(){
-        for (Ant ant : ants){
-            ant.balanceEquation();
-        }
-    }
-
-    private int getBestSolutionAntId() {
+    private float[] getEstimatedAntsEquations(){
+        float[] antsValues = new float[ants.size()];
         PrefixCalculator prefixCalculator = new PrefixCalculator();
-        int bestAntIndex = -1;
-        float bestAntQuality = -100f;
-
-        for (Ant ant : ants) {
-            float antSolutionQuality = prefixCalculator.evaluate(ant.getVisitedNodes());
-            if(antSolutionQuality > bestAntQuality){
-                bestAntQuality = antSolutionQuality;
-                bestAntIndex = ant.getId();
-            }
+        for (int i=0; i<ants.size(); i++){
+            ants.get(i).balanceEquation();
+            antsValues[i] = prefixCalculator.evaluate(ants.get(i).getVisitedNodes());
         }
-        System.out.println("Winner: Ant " + bestAntIndex + " Score: " + bestAntQuality);
-        return bestAntIndex;
+        return antsValues;
     }
 
-    private void globalPheromoneUpdate(int bestAntIndex, float victoryRate) {
+    public void globalPheromoneUpdate(int bestAntIndex, float victoryRate) {
         Ant bestAnt = ants.get(bestAntIndex);
         Edge originalEdge;
         float currentPheromones;
