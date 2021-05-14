@@ -3,7 +3,9 @@ package com.antcheckers.checkers;
 public interface Rules {
     char EMPTY = '-';
     char BLACK_PAWN = 'b';
+    char BLACK_QUEEN = 'B';
     char WHITE_PAWN = 'w';
+    char WHITE_QUEEN = 'W';
 
     int BOT_RIGHT = 9;
     int TOP_LEFT = -9;
@@ -18,30 +20,27 @@ public interface Rules {
     int BOARD_EDGE_LENGTH = 8;
     int BOARD_SIZE = 64;
 
-    static boolean acceptableWhitePawnKill(int killingPosition, int nextPosition, char[] boardState){
+    int BASE_PREDICTION = 5;
+    int MEDIUM_PREDICTION = 6;
+    int HIGHEST_PREDICTION = 7;
+
+    static boolean acceptableWhiteFigureKill(int killingPosition, int nextPosition, char[] boardState){
         return exist(killingPosition) &&
-                blackPawnNotOnEdge(killingPosition, boardState) &&
+                blackFigureNotOnEdge(killingPosition, boardState) &&
                 empty(nextPosition, boardState);
     }
 
-    static boolean acceptableBlackPawnKill(int killingPosition, int nextPosition, char[] boardState){
+    static boolean acceptableBlackFigureKill(int killingPosition, int nextPosition, char[] boardState){
         return exist(killingPosition) &&
-                whitePawnNotOnEdge(killingPosition, boardState) &&
+                whiteFigureNotOnEdge(killingPosition, boardState) &&
                 empty(nextPosition, boardState);
     }
 
-    static boolean acceptableBlackPawnMove(int position, int nextPosition, char[] boardState) {
+    static boolean acceptableMove(int position, int nextPosition, char[] boardState) {
         return exist(nextPosition) &&
                 empty(nextPosition, boardState) &&
-                acceptableMoveBot(position, nextPosition) &&
-                (acceptableMoveRight(position, nextPosition) ||
-                        acceptableMoveLeft(position, nextPosition));
-    }
-
-    static boolean acceptableWhitePawnMove(int position, int nextPosition, char[] boardState) {
-        return exist(nextPosition) &&
-                empty(nextPosition, boardState) &&
-                acceptableMoveTop(position, nextPosition) &&
+                (acceptableMoveTop(position, nextPosition) ||
+                        acceptableMoveBot(position, nextPosition)) &&
                 (acceptableMoveRight(position, nextPosition) ||
                         acceptableMoveLeft(position, nextPosition));
     }
@@ -62,24 +61,48 @@ public interface Rules {
         return position%BOARD_EDGE_LENGTH - 1 == nextPosition%BOARD_EDGE_LENGTH;
     }
 
-    static boolean whitePawnNotOnEdge(int position, char[] boardState) {
-        return notEdge(position) && whitePawn(position, boardState);
+    static boolean whiteFigureNotOnEdge(int position, char[] boardState) {
+        return notEdge(position) && whiteFigure(position, boardState);
     }
 
-    static boolean blackPawnNotOnEdge(int position, char[] boardState) {
-        return notEdge(position) && blackPawn(position, boardState);
+    static boolean blackFigureNotOnEdge(int position, char[] boardState) {
+        return notEdge(position) && blackFigure(position, boardState);
     }
 
     static boolean empty(int position, char[] boardState) {
         return boardState[position] == EMPTY;
     }
 
+    static boolean promotableWhitePawn(int position, char[] boardState) {
+        return topEdge(position) && whitePawn(position, boardState);
+    }
+
+    static boolean promotableBlackPawn(int position, char[] boardState) {
+        return botEdge(position) && blackPawn(position, boardState);
+    }
+
     static boolean blackPawn(int position, char[] boardState) {
         return boardState[position] == BLACK_PAWN;
     }
 
+    static boolean blackQueen(int position, char[] boardState) {
+        return boardState[position] == BLACK_QUEEN;
+    }
+
+    static boolean blackFigure(int position, char[] boardState) {
+        return boardState[position] == BLACK_PAWN || boardState[position] == BLACK_QUEEN;
+    }
+
     static boolean whitePawn(int position, char[] boardState) {
         return boardState[position] == WHITE_PAWN;
+    }
+
+    static boolean whiteQueen(int position, char[] boardState) {
+        return boardState[position] == WHITE_QUEEN;
+    }
+
+    static boolean whiteFigure(int position, char[] boardState) {
+        return boardState[position] == WHITE_PAWN || boardState[position] == WHITE_QUEEN;
     }
 
     static boolean notEdge(int position) {
