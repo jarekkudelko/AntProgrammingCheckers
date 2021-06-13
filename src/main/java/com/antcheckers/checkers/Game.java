@@ -1,11 +1,11 @@
 package com.antcheckers.checkers;
 
+import com.antcheckers.utility.Parameters;
+
 import java.util.*;
 
 public class Game implements Rules{
 
-    private static int lastTurn;
-    private static int lookupDepth;
     private static float[] whitesWeights;
     private static float[] blacksWeights;
 
@@ -30,11 +30,6 @@ public class Game implements Rules{
         this.depth = depth;
     }
 
-    public static void setGameLimits(int turnLimit, int lookupLimit) {
-        lastTurn = turnLimit;
-        lookupDepth = lookupLimit;
-    }
-
     public static void setPlayerWeights(float[] whitePlayer, float[] blackPlayer) {
         whitesWeights = whitePlayer;
         blacksWeights = blackPlayer;
@@ -42,9 +37,9 @@ public class Game implements Rules{
 
     public static float[] playMatch() {
         Game match = new Game();
-        for (int i=0; i<lastTurn; i++){
+        for (int i = 0; i< Parameters.lastTurn; i++){
             if (Rules.bothColorsOnBoard(match.board)){
-                match.generateTree(lookupDepth);
+                match.generateTree(Parameters.lookupDepth);
                 match.evaluateTreeLeaves(match);
                 match.passMaxToCore(match, MIN_FLOAT, MAX_FLOAT);
                 char[] nextBoard = match.getBestMove();

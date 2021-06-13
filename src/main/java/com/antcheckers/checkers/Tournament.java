@@ -5,33 +5,17 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Tournament {
 
-    private static final int LOW_PREDICTION = 4;
-    private static final int BASE_PREDICTION = 5;
-    private static final int MEDIUM_PREDICTION = 6;
-    private static final int HIGH_PREDICTION = 7;
-    private static final int LAST_TURN_ACF = 50;
-    private static final int LAST_TURN_MEDIUM = 60;
-    private static final int LAST_TURN_BEGINNER = 70;
-
-    static final float[] BALANCE_ORIENTED = {25,-25,100,-100,2,-2,4,-4,8,-8,1,-1,1,-1,2,-2};
-    static final float[] QUEENS_ORIENTED = {20,-20,150,-150,1,-1,7,-7,14,-14,1,-1,1,-1,5,-5};
-    static final float[] POSITION_ORIENTED = {15,-15,60,-60,2,-2,6,-6,8,-8,2,-2,3,-3,1,-1};
-
-    private float[][] weights = {BALANCE_ORIENTED, QUEENS_ORIENTED, POSITION_ORIENTED};
+    private float[][] weights;
     private int[] weightsScores;
     private int[][] roundRobin;
     int playOffsCounter = 0;
-
-    public Tournament() {
-    }
 
     public Tournament(float[][] weights) {
         this.weights = weights;
     }
 
-    public int getWinningWeights() {
+    public int getWinner() {
         setRoundRobin();
-        Game.setGameLimits(LAST_TURN_MEDIUM, LOW_PREDICTION);
         playSeries();
         return pickWinner();
     }

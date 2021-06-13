@@ -21,30 +21,26 @@ public class Exploration {
 
     private void setEdgesAttractivenessSum() {
         edgesAttractivenessSum = 0;
-        for (float attractiveness : edgesAttractiveness) {
+        for (float attractiveness : edgesAttractiveness)
             edgesAttractivenessSum += attractiveness;
-        }
     }
 
     private void createAndFillPickProbabilities() {
         pickProbabilities = edgesAttractiveness.clone();
-        for (int i=0; i<pickProbabilities.length; i++) {
+        for (int i=0; i<pickProbabilities.length; i++)
             pickProbabilities[i] /= edgesAttractivenessSum;
-        }
     }
 
     private void transformProbabilitiesToRanges() {
-        for (int i=1; i<pickProbabilities.length; i++){
+        for (int i=1; i<pickProbabilities.length; i++)
             pickProbabilities[i] += pickProbabilities[i-1];
-        }
     }
 
     private int getOccupiedRangeIndex() {
         float randomValue = ThreadLocalRandom.current().nextFloat();
-        for (int i=0; i<pickProbabilities.length; i++) {
+        for (int i=0; i<pickProbabilities.length; i++)
             if(randomValue < pickProbabilities[i])
                 return i;
-        }
         return -1;
     }
 }

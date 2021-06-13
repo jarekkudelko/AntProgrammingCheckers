@@ -5,28 +5,18 @@ import java.util.List;
 
 public class Ant {
 
-    private int id;
     private int equationPower;
     private List<Edge> edges;
     private List<Node> visitedNodes;
 
-    public Ant(int id) {
-        this.id = id;
+    public Ant() {
         equationPower = 2;
         edges = new ArrayList<>();
         visitedNodes = new ArrayList<>();
     }
 
-    public int getId() {
-        return id;
-    }
-
     public void addEdge(Edge edge) {
         edges.add(edge);
-    }
-
-    public void addEdgeToPosition(int index, Edge edge) {
-        edges.add(index, edge);
     }
 
     public void clearEdges() {
@@ -104,17 +94,11 @@ public class Ant {
         return nodeId < visitedNodes.size()-1 && nodeId != 0;
     }
 
-    private boolean operatorFirst(int nodeId) {
-        return nodeId == 0;
+    public void addEdgeToPosition(int index, Edge edge) {
+        edges.add(index, edge);
     }
 
-    @Override
-    public String toString() {
-        return "Ant{" +
-                "id=" + id +
-                ", eqationPower=" + equationPower +
-                ", edges=" + "\r\n" + edges +
-                ", visitedNodes=" + visitedNodes +
-                '}';
+    private boolean operatorFirst(int nodeId) {
+        return nodeId == 0;
     }
 }

@@ -39,9 +39,4 @@ public class Edge {
     public void setPheromones(float pheromones) {
         this.pheromones = pheromones;
     }
-
-    @Override
-    public String toString() {
-        return "Edge{" + startNode.getData() + " -> " + endNode.getData() + "} P=" + pheromones;
-    }
 }

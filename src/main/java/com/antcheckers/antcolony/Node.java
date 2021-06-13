@@ -38,13 +38,4 @@ public class Node {
     public boolean isOperator(){
         return nodePower == 1;
     }
-
-    @Override
-    public String toString() {
-        return "Node{" +
-                "data='" + data + '\'' +
-                ", nodePower=" + nodePower +
-                ", edgesConected=" + candidateEdges.size() +
-                '}';
-    }
 }

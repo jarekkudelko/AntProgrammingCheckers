@@ -1,88 +1,49 @@
 package com.antcheckers.antcolony;
 
+import com.antcheckers.checkers.Tournament;
+import com.antcheckers.utility.Parameters;
+
 import java.util.Arrays;
 
 public class AntColony {
 
-    private final int ATTRIBUTES = 3;
-
-    private int numberOfAnts = 3;
-    private int numberOfCycles = 3;
-    private int maxIterationsInCycle = 12;
-
-    private float initialPheromones = 0.001f;
-    private boolean localPheromones = true;
-
-    private float vaporizeFactor = 0.1f;
-    private float exploitationFactor = 0.2f;
-
-    private AntSystem[] antSystems = new AntSystem[ATTRIBUTES];
-    private int[] minNodes = {-2,-2,-2};
-    private int[] maxNodes = {2,2,2};
-
-    private float[][] antSystemsResults = new float[ATTRIBUTES][numberOfAnts];
-    private float[][] playerFunctionsWeights = new float[numberOfAnts][ATTRIBUTES];
+    private AntSystem[] antSystems = new AntSystem[Parameters.attributes];
+    private float[][] systemsResults = new float[Parameters.attributes][Parameters.players];
+    private float[][] weights = new float[Parameters.players][Parameters.attributes];
 
     public void run() {
-        initializeSystems();
-        for(int i=0; i<numberOfCycles; i++) {
+        System.out.println("Setting systems!");
+        setAntSystems();
+        for(int i=0; i<Parameters.cycles; i++) {
             getSystemsResults();
-            setPlayerFunctionsWeights();
-            int winnerId = mockCompareSystemValues();
-            globalPheromoneUpdate(winnerId);
+            System.out.println("Got system results!");
+            setWeights();
+            System.out.println("Tournament started!");
+            Tournament tournament = new Tournament(weights);
+            int winnerId = tournament.getWinner();
+            updateWinnerPath(winnerId);
+            System.out.println("Winner weights: " + Arrays.toString(weights[winnerId]));
         }
     }
 
-    private void initializeSystems() {
-        AntSystem antSystem;
-        for (int i=0; i<ATTRIBUTES; i++) {
-            antSystem = new AntSystem(numberOfAnts,maxIterationsInCycle,initialPheromones,localPheromones,vaporizeFactor,exploitationFactor);
-            antSystem.setLists(minNodes[i],maxNodes[i]);
-            antSystems[i] = antSystem;
-        }
+    private void setAntSystems() {
+        for (int i=0; i<Parameters.attributes; i++)
+            antSystems[i] = new AntSystem(Parameters.minNodes[i], Parameters.maxNodes[i]);
     }
 
     private void getSystemsResults() {
-        for(int i=0; i<ATTRIBUTES; i++) {
-            float[] antSystemResult = antSystems[i].antsUpdate();
-            antSystemsResults[i] = antSystemResult;
-        }
+        for(int i=0; i<Parameters.attributes; i++)
+            systemsResults[i] = antSystems[i].antsUpdate();
     }
 
-    private void setPlayerFunctionsWeights() {
-        for (int i=0; i<ATTRIBUTES; i++){
-            for (int j=0; j<numberOfAnts; j++) {
-                playerFunctionsWeights[j][i] = antSystemsResults[i][j];
-            }
-        }
-        System.out.println("Player functions: " + Arrays.deepToString(playerFunctionsWeights));
+    private void setWeights() {
+        for (int i=0; i<Parameters.attributes; i++)
+            for (int j = 0; j<Parameters.players; j++)
+                weights[j][i] = systemsResults[i][j];
     }
 
-    private int mockCompareSystemValues() {
-        int winnerId = 0;
-        float winningVal = sumPlayerArr(0);
-        for (int i=0; i<playerFunctionsWeights.length; i++){
-            float currentValue = sumPlayerArr(i);
-            if(winningVal < currentValue){
-                winnerId = i;
-                winningVal = currentValue;
-            }
-        }
-        System.out.println("Winner Id:" + winnerId + ", Val: " + winningVal);
-        return winnerId;
-    }
-
-    private float sumPlayerArr(int id) {
-        float sum = 0;
-        for (float f : playerFunctionsWeights[id]) {
-            sum += f;
-        }
-        return sum;
-    }
-
-    private void globalPheromoneUpdate(int winnerId) {
-        for (AntSystem antSystem : antSystems) {
-            antSystem.globalPheromoneUpdate(winnerId,1);
-        }
+    private void updateWinnerPath(int id) {
+        for (AntSystem system : antSystems)
+            system.globalPheromoneUpdate(id);
     }
 }
