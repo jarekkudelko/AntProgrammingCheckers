@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane prefWidth="850.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.antcheckers.ui.FXMLController">
+   <center>
+      <VBox>
+          <TitledPane collapsible="false" id="mid" text="Evaluation">
+              <VBox>
+                  <SplitPane dividerPositions="0.33, 0.66">
+                      <TitledPane collapsible="false" id="system" text="SYSTEM">
+                          <VBox>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Cycles"/>
+                                  <TextField fx:id="cycles" styleClass="system-input" text="5"/>
+                              </HBox>
+                              <Label fx:id="cyclesError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Iterations"/>
+                                  <TextField fx:id="iterations" styleClass="system-input" text="5"/>
+                              </HBox>
+                              <Label fx:id="iterationsError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Vaporize factor"/>
+                                  <TextField fx:id="vaporize" styleClass="system-input" text="0.1"/>
+                              </HBox>
+                              <Label fx:id="vaporizeError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Exploitation factor"/>
+                                  <TextField fx:id="exploit" styleClass="system-input" text="0.5"/>
+                              </HBox>
+                              <Label fx:id="exploitError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Initial Pheromone"/>
+                                  <TextField fx:id="initial" styleClass="system-input" text="0.001"/>
+                              </HBox>
+                              <Label fx:id="initialError" styleClass="error">
+                              </Label>
+                              <CheckBox fx:id="localPheromone" text="Use local pheromone"/>
+                          </VBox>
+                      </TitledPane>
+                      <TitledPane collapsible="false" text="PLAYER">
+                          <VBox>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Pawns" />
+                                  <TextField id="playerMinPawns" fx:id="playerPawnsMin" styleClass="weight-input" text="-2" />
+                                  <TextField id="playerMaxPawns" fx:id="playerPawnsMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerPawnsError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Queens" />
+                                  <TextField id="playerMinQueens" fx:id="playerQueensMin" styleClass="weight-input" text="-2" />
+                                  <TextField id="playerMaxQueens" fx:id="playerQueensMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerQueensError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In base" />
+                                  <TextField fx:id="playerBaseMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerBaseMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerBaseError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In middle" />
+                                  <TextField fx:id="playerMidMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerMidMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerMidError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In end" />
+                                  <TextField fx:id="playerEndMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerEndMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerEndError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="On edge" />
+                                  <TextField fx:id="playerEdgeMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerEdgeMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerEdgeError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Formation" />
+                                  <TextField fx:id="playerFormationMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerFormationMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerFormationError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Stalking" />
+                                  <TextField fx:id="playerStalkingMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="playerStalkingMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="playerStalkingError" styleClass="error">
+                              </Label>
+                          </VBox>
+                      </TitledPane>
+                      <TitledPane collapsible="false" text="OPPONENT">
+                          <VBox>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Pawns" />
+                                  <TextField fx:id="opponentPawnsMin" styleClass="weight-input" promptText="min" text="-2" />
+                                  <TextField fx:id="opponentPawnsMax" styleClass="weight-input" promptText="max" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentPawnsError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Queens" />
+                                  <TextField fx:id="opponentQueensMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentQueensMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentQueensError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In base" />
+                                  <TextField fx:id="opponentBaseMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentBaseMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentBaseError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In middle" />
+                                  <TextField fx:id="opponentMidMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentMidMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentMidError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="In end" />
+                                  <TextField fx:id="opponentEndMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentEndMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentEndError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="On edge" />
+                                  <TextField fx:id="opponentEdgeMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentEdgeMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentEdgeError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Formation" />
+                                  <TextField fx:id="opponentFormationMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentFormationMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentFormationError" styleClass="error">
+                              </Label>
+                              <HBox styleClass="input-spacing">
+                                  <Label text="Stalking" />
+                                  <TextField fx:id="opponentStalkingMin" styleClass="weight-input" text="-2" />
+                                  <TextField fx:id="opponentStalkingMax" styleClass="weight-input" text="2" />
+                              </HBox>
+                              <Label fx:id="opponentStalkingError" styleClass="error">
+                              </Label>
+                          </VBox>
+                      </TitledPane>
+                  </SplitPane>
+              </VBox>
+          </TitledPane>
+      </VBox>
+   </center>
+   <top>
+       <TitledPane collapsible="false" id="top" text="Matches">
+           <VBox>
+               <SplitPane dividerPositions="0.33, 0.66">
+                   <VBox>
+                       <HBox styleClass="toggle-input">
+                           <Label text="Players"/>
+                           <HBox fx:id="playersGroup" styleClass="toggle-group">
+                               <RadioButton text="2">
+                                   <toggleGroup>
+                                       <ToggleGroup fx:id="players"/>
+                                   </toggleGroup>
+                               </RadioButton>
+                               <RadioButton text="4" toggleGroup="$players"/>
+                               <RadioButton text="6" toggleGroup="$players"/>
+                               <RadioButton text="8" toggleGroup="$players"/>
+                               <RadioButton text="10" toggleGroup="$players"/>
+                           </HBox>
+                       </HBox>
+                       <Label fx:id="playersError" styleClass="error">
+                       </Label>
+                   </VBox>
+                   <VBox>
+                       <HBox styleClass="toggle-input">
+                           <Label text="Prediction"/>
+                           <HBox fx:id="predictionGroup" styleClass="toggle-group">
+                               <RadioButton text="3">
+                                   <toggleGroup>
+                                       <ToggleGroup fx:id="prediction"/>
+                                   </toggleGroup>
+                               </RadioButton>
+                               <RadioButton text="4" toggleGroup="$prediction"/>
+                               <RadioButton text="5" toggleGroup="$prediction"/>
+                               <RadioButton text="6" toggleGroup="$prediction"/>
+                           </HBox>
+                       </HBox>
+                       <Label fx:id="predictionError" styleClass="error">
+                       </Label>
+                   </VBox>
+                   <VBox>
+                       <HBox styleClass="toggle-input">
+                           <Label  text="Turn limit"/>
+                           <HBox fx:id="turnsGroup" styleClass="toggle-group">
+                               <RadioButton text="50">
+                                   <toggleGroup>
+                                       <ToggleGroup fx:id="turns"/>
+                                   </toggleGroup>
+                               </RadioButton>
+                               <RadioButton text="60" toggleGroup="$turns"/>
+                               <RadioButton text="70" toggleGroup="$turns"/>
+                           </HBox>
+                       </HBox>
+                       <Label fx:id="turnsError" styleClass="error">
+                       </Label>
+                   </VBox>
+               </SplitPane>
+           </VBox>
+       </TitledPane>
+   </top>
+   <bottom>
+       <TitledPane collapsible="false" id="bottom" text="Run">
+           <VBox alignment="CENTER">
+               <TextArea fx:id="output" id="output" editable="false"/>
+               <ProgressBar fx:id="progress" id="progress" progress="0" />
+               <Button fx:id="submit" onAction="#getOptimalWeights" text="Start" />
+           </VBox>
+       </TitledPane>
+   </bottom>
+</BorderPane>

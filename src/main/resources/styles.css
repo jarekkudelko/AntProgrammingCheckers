@@ -1,0 +1,69 @@
+HBox  {
+    -fx-pref-width: 200;
+    -fx-pref-height: 100;
+}
+
+.standard-v-box {
+    -fx-pref-width: 100;
+    -fx-pref-height: 200;
+}
+
+.input-spacing {
+    -fx-spacing: 5;
+}
+
+.toggle-input {
+    -fx-padding: 5;
+    -fx-spacing: 15;
+}
+
+.error {
+    -fx-text-fill: red;
+    -fx-font-size: 8;
+    -fx-font-weight: bold;
+}
+
+.weight-input {
+    -fx-pref-width: 40;
+    -fx-pref-height: 26;
+}
+
+.system-input {
+    -fx-pref-width: 100;
+    -fx-pref-height: 26;
+}
+
+.toggle-group {
+    -fx-pref-width: 132;
+    -fx-pref-height: 20;
+    -fx-spacing: 8;
+}
+
+#system {
+    -fx-padding: 0 0 100 0;
+}
+
+#bottom {
+    -fx-pref-width: 850;
+    -fx-pref-height: 140;
+}
+
+#mid {
+    -fx-pref-width: 850;
+    -fx-pref-height: 400;
+}
+
+#top {
+    -fx-pref-width: 850;
+    -fx-pref-height: 75;
+}
+
+#output {
+    -fx-pref-width: 830;
+    -fx-pref-height: 50;
+}
+
+#progress {
+    -fx-pref-width: 830;
+    -fx-pref-height: 30;
+}
